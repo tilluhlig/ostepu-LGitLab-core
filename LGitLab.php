@@ -36,7 +36,7 @@ class LGitLab extends Model
         
         
         if (!isset($data['event_name']) || $data['event_name'] !== 'tag_push'){
-            return Model::isProblem("falscher Ereignistyp!");
+            return Model::isProblem("falscher Ereignistyp! Wenn Sie ihr Repository an die Übungsplattform übermitteln wollen, \t dann müssen Sie einen Tag mit dem Titel SUBMIT_<Serienname>_<Aufgabennummer> erstellen.");
         }
         
         if (!isset($data['project_id'])){
