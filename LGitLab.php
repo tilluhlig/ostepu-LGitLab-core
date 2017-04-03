@@ -233,7 +233,7 @@ class LGitLab extends Model
         //var_dump(array('courseId'=>$courseId,'sheetId'=>$sheetId,'exerciseId'=>$exerciseId,'userId'=>$userId, 'timestamp'=>$timestamp, 'projectId'=>$projectId, 'checkoutSha'=>$checkoutSha));
         
         // wenn alles stimmt, dann rufen wir nun ein Archiv des aktuellen Repo ab
-        $url = $this->config['GITLAB']['gitLabUrl'].'/api/v3/projects/'.$projectId.'/repository/archive?'.'private_token='.$this->config['GITLAB']['private_token'].'&sha='.$checkoutSha;
+        $url = $this->config['GITLAB']['gitLabUrl'].'/api/v3/projects/'.$projectId.'/repository/archive?'.'private_token='.$this->config['GITLAB']['private_token'].'&sha='.$checkoutSha.'&sudo='.$userName;
         $tempFile = $this->config['DIR']['temp'].'/'.sha1($url);
 
         $res = Request::download($tempFile, $url, true);
