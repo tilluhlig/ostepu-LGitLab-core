@@ -68,6 +68,8 @@ class LGitLab extends Model
         $timestampRaw = $data['commits'][0]['timestamp']; // das ist der Einsendezeitpunkt. Format: 2017-02-22T14:10:25+01:00
         $timestamp = strtotime($timestampRaw);
         
+        $projectId = $data['project_id'];
+        
         // "ref":"refs/tags/SUBMIT_SHEETID_EXERCISEID",
         $tag = $data['ref'];
         $tagRaw = explode("/",$tag);
@@ -82,12 +84,11 @@ class LGitLab extends Model
         $tagType = $tagRaw[0];
         $sheetName = $tagRaw[1]; // die Übungsserie-ID (muss geprüft werden)
         $exerciseName = $tagRaw[2]; // die Aufgaben-ID (muss geprüft werden)
-        $projectId = $data['project_id'];
         $checkoutSha = $data['checkout_sha'];
         
         // der TAG muss mit SUBMIT beginnen
         if (strtoupper($tagType) != 'SUBMIT'){
-            return Model::isOk("dieses TAG soll nichts einsenden");
+            return Model::isOk("dieses Tag soll nichts einsenden");
         }
         
         // jetzt müssen courseIdRaw, userName, sheetName und exerciseName noch validiert werden
@@ -137,7 +138,7 @@ class LGitLab extends Model
         } else {
               // wenn die Eingabe nicht validiert werden konnte, können hier die
               // Fehlermeldungen behandelt werden
-            return Model::isError("fehlerhafte Eingabe"); 
+            return Model::isError($this->sendTagError($projectId, $tag, "fehlerhafte Eingabe")); 
         }
         
         // wenn die Form stimmt, dann können wir die Daten gegenprüfen
@@ -146,7 +147,7 @@ class LGitLab extends Model
         if ($exerciseSheets['status'] == 200){
             $exerciseSheets = ExerciseSheet::decodeExerciseSheet($exerciseSheets['content']);
         } else {
-            return Model::isError("die Übungsserien konnten nicht abgerufen werden!"); 
+            return Model::isError($this->sendTagError($projectId, $tag, "die Übungsserien konnten nicht abgerufen werden!")); 
         }
         
         // ab hier werden die Kursnummer, Seriennummer und Aufgabennummer bestimmt, sowie die Aufgabennamen berechnet
@@ -183,18 +184,18 @@ class LGitLab extends Model
                 if (isset($namesOfExercises[$exerciseName])){
                     $exerciseId = $namesOfExercises[$exerciseName];
                 } else {    
-                    return Model::isError("die Aufgabe existiert nicht!");                     
+                    return Model::isError($this->sendTagError($projectId, $tag, "die Aufgabe existiert nicht!"));                     
                 }
                 break;
             }
         }
         
         if ($sheetId === null){    
-            return Model::isError("die Übungsserie existiert nicht!");  
+            return Model::isError($this->sendTagError($projectId, $tag, "die Übungsserie existiert nicht!"));  
         }
         
         if ($courseIdRaw != $courseId){
-            return Model::isError("die übergebene Veranstaltungsnummer passt nicht zur Veranstaltung der Übungsserie!"); 
+            return Model::isError($this->sendTagError($projectId, $tag, "die übergebene Veranstaltungsnummer passt nicht zur Veranstaltung der Übungsserie!")); 
         }
         
         // der Nutzername muss noch aufgelöst werden
@@ -203,7 +204,7 @@ class LGitLab extends Model
         if ($userData['status'] == 200){
             $userData = User::decodeUser($userData['content']);
         } else {
-            return Model::isError("ungültiger Nutzer!"); 
+            return Model::isError($this->sendTagError($projectId, $tag, "ungültiger Nutzer!")); 
         }
         $userId = $userData->getId();
         
@@ -212,7 +213,7 @@ class LGitLab extends Model
         if ($groupData['status'] == 200){
             $groupData = Group::decodeGroup($groupData['content']);
         } else {
-            return Model::isError("ungültige Gruppe!"); 
+            return Model::isError($this->sendTagError($projectId, $tag, "ungültige Gruppe!")); 
         }
         
         // hier müssen wir noch die Veranstaltung extrahieren
@@ -226,7 +227,7 @@ class LGitLab extends Model
         }
         
         if ($course === null){
-            return Model::isError("ich konnte keine passende Veranstaltung zu diesem Nutzer finden!"); 
+            return Model::isError($this->sendTagError($projectId, $tag, "ich konnte keine passende Veranstaltung zu diesem Nutzer finden!")); 
         }
         
         // ab diesem Punkt besitzen wir die korrekte courseId, sheetId, exerciseId, userId, timestamp, projectId, checkoutSha
@@ -270,17 +271,17 @@ class LGitLab extends Model
 
                         ///set_error("Der Übungszeitraum ist am ".date('d.m.Y  -  H:i', $upload_data['exerciseSheet']['endDate'])." abgelaufen!");
                         if ($allowed  === null || $allowed==1){
-                            return Model::isError("der Übungszeitraum ist abgelaufen, am ".date('d.m.Y  -  H:i', $mySheet->getEndDate()));
+                            return Model::isError($this->sendTagError($projectId, $tag, "der Übungszeitraum ist abgelaufen, am ".date('d.m.Y  -  H:i', $mySheet->getEndDate())));
                         } else {
-                            return Model::isError("der Übungszeitraum ist abgelaufen, am ".date('d.m.Y  -  H:i', $mySheet->getEndDate()));
+                            return Model::isError($this->sendTagError($projectId, $tag, "der Übungszeitraum ist abgelaufen, am ".date('d.m.Y  -  H:i', $mySheet->getEndDate())));
                         }
 
                     } elseif (!$hasStarted){
-                        return Model::isError("der Übungszeitraum hat noch nicht begonnen"); 
+                        return Model::isError($this->sendTagError($projectId, $tag, "der Übungszeitraum hat noch nicht begonnen")); 
                     }
 
                 } else {
-                    return Model::isError("kein Übungszeitraum gefunden"); 
+                    return Model::isError($this->sendTagError($projectId, $tag, "kein Übungszeitraum gefunden")); 
                 }
 
                 $uploadFile = File::createFile(null,$filename,null,$timestamp,null,null);
@@ -301,16 +302,16 @@ class LGitLab extends Model
                 };
                 
                 $negative = function(){
-                    return Model::isError("Die Einsendung konnte nicht gespeichert werden!"); 
+                    return Model::isError($this->sendTagError($projectId, $tag, "Die Einsendung konnte nicht gespeichert werden!")); 
                 };
                 
                 // jetzt wird die Einsendung gespeichert
                 return Model::call('postSubmission', array('courseid'=>$courseId), Submission::encodeSubmission($uploadSubmission), 201, $positive, array(), $negative, array(), null);
             } else {
-                return Model::isError("ich konnte den Dateinamen der Einsendung nicht ermitteln"); 
+                return Model::isError($this->sendTagError($projectId, $tag, "ich konnte den Dateinamen der Einsendung nicht ermitteln")); 
             }
         } else {
-            return Model::isError("das Repo konnte nicht bei GitLab abgerufen werden"); 
+            return Model::isError($this->sendTagError($projectId, $tag, "das Repo konnte nicht bei GitLab abgerufen werden")); 
         }
     }
     
@@ -388,6 +389,13 @@ class LGitLab extends Model
         $platform->setStatus(201);
        
         return Model::isCreated($platform);
+    }
+    
+    public function sendTagError($projectId, $tag, $message){
+        $tagName = end(explode('/',$tag));
+        $message = ':exclamation: '.$message.' :exclamation:';
+        $url = $this->config['GITLAB']['gitLabUrl'].'/api/v3/projects/'.urlencode($projectId).'/repository/tags/'.urlencode($tagName).'/release?'.'description='.urlencode($message).'&private_token='.$this->config['GITLAB']['private_token'];
+        Request::post($url, array(),  '', false);
     }
 
 }
