@@ -36,7 +36,7 @@ class LGitLab extends Model
         $data = json_decode($input, true);
 
         // der private-token kann auch als secret-token übermittelt werden
-        if (isset($params['request']['headers']['HTTP_X_GITLAB_TOKEN'])){
+        if (isset($params['request']['headers']['HTTP_X_GITLAB_TOKEN']) && trim($params['request']['headers']['HTTP_X_GITLAB_TOKEN']) != ''){
             $this->secretToken = $params['request']['headers']['HTTP_X_GITLAB_TOKEN'];
         }
         
