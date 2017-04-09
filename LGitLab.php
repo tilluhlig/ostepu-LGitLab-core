@@ -17,6 +17,7 @@ class LGitLab extends Model
      */
     private $_component = null;
     private $config = array();
+    private $secretToken = null;
     public function __construct( )
     {        
         if (file_exists(dirname(__FILE__).'/config.ini')){
@@ -33,10 +34,14 @@ class LGitLab extends Model
     public function submit( $callName, $input, $params = array() )
     {
         $data = json_decode($input, true);
-        
+
+        // der private-token kann auch als secret-token übermittelt werden
+        if (isset($params['request']['headers']['HTTP_X_GITLAB_TOKEN'])){
+            $this->secretToken = $params['request']['headers']['HTTP_X_GITLAB_TOKEN'];
+        }
         
         if (!isset($data['event_name']) || $data['event_name'] !== 'tag_push'){
-            return Model::isProblem("falscher Ereignistyp! Wenn Sie ihr Repository an die Übungsplattform übermitteln wollen, \t dann müssen Sie einen Tag mit dem Titel SUBMIT_<Serienname>_<Aufgabennummer> erstellen.");
+            return Model::isProblem("falscher Ereignistyp! Wenn Sie ihr Repository an die Übungsplattform übermitteln wollen, dann müssen Sie einen Tag mit dem Titel SUBMIT_<Serienname>_<Aufgabennummer> erstellen.");
         }
         
         if (!isset($data['project_id'])){
@@ -234,7 +239,14 @@ class LGitLab extends Model
         //var_dump(array('courseId'=>$courseId,'sheetId'=>$sheetId,'exerciseId'=>$exerciseId,'userId'=>$userId, 'timestamp'=>$timestamp, 'projectId'=>$projectId, 'checkoutSha'=>$checkoutSha));
         
         // wenn alles stimmt, dann rufen wir nun ein Archiv des aktuellen Repo ab
-        $url = $this->config['GITLAB']['gitLabUrl'].'/api/v3/projects/'.$projectId.'/repository/archive?'.'private_token='.$this->config['GITLAB']['private_token'].'&sha='.$checkoutSha;
+        $token = null;
+        if (isset($this->secretToken)){ // wenn ein secretToken gefunden wurde, dann wird dieser genutzt
+            $token = urlencode($this->secretToken);
+        } else {
+            $token = $this->config['GITLAB']['private_token'];
+        }  
+        
+        $url = $this->config['GITLAB']['gitLabUrl'].'/api/v3/projects/'.$projectId.'/repository/archive?'.'private_token='.$token.'&sha='.$checkoutSha;
         $tempFile = $this->config['DIR']['temp'].'/'.sha1($url);
 
         $res = Request::download($tempFile, $url, true);
@@ -394,8 +406,19 @@ class LGitLab extends Model
     public function sendTagError($projectId, $tag, $message){
         $tagName = end(explode('/',$tag));
         $message = ':exclamation: '.$message.' :exclamation:';
-        $url = $this->config['GITLAB']['gitLabUrl'].'/api/v3/projects/'.urlencode($projectId).'/repository/tags/'.urlencode($tagName).'/release?'.'description='.urlencode($message).'&private_token='.$this->config['GITLAB']['private_token'];
-        Request::post($url, array(),  '', false);
+        
+        $token = null;
+        // wenn wir einen secretToken gefunden haben, dann wird dieser verwendet
+        if (isset($this->secretToken)){
+            $token = urlencode($this->secretToken);
+        } else {
+            $token = $this->config['GITLAB']['private_token'];
+        }    
+        $url = $this->config['GITLAB']['gitLabUrl'].'/api/v3/projects/'.urlencode($projectId).'/repository/tags/'.urlencode($tagName).'/release?'.'description='.urlencode($message).'&private_token='.$token;
+        
+        if (isset($token)){
+            Request::post($url, array(),  '', false);
+        }
     }
 
 }
