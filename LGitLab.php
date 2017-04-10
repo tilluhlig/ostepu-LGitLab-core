@@ -88,7 +88,7 @@ class LGitLab extends Model
         
         $tagType = $tagRaw[0];
         $sheetName = $tagRaw[1]; // die Übungsserie-ID (muss geprüft werden)
-        $exerciseName = $tagRaw[2]; // die Aufgaben-ID (muss geprüft werden)
+        $exerciseName = strtoupper($tagRaw[2]); // die Aufgaben-ID (muss geprüft werden)
         $checkoutSha = $data['checkout_sha'];
         
         // der TAG muss mit SUBMIT beginnen
@@ -170,8 +170,11 @@ class LGitLab extends Model
                 
                 // nun müssen wir noch die Aufgabe finden
                 $namesOfExercises = array();
+                $alphabet = range('A', 'Z');
                 $count=null;
                 $exercises = json_decode(json_encode($sheet->getExercises()),true);
+                $exercises = LArraySorter::orderBy($exercises, 'link', SORT_ASC, 'linkName', SORT_ASC);
+            
                 foreach ($exercises as $key => $exercise){
                     $exerciseId = $exercise['id'];
 
