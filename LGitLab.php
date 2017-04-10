@@ -310,18 +310,18 @@ class LGitLab extends Model
                 if ($isExpired){
                     $uploadSubmission->setAccepted(0);
                 }
-                
-                $positive = function($input){
+
+                $positive = function($input, $object, $projectId, $tag){
                     // die Einsendung konnte erfolgreich abgelegt werden
-                    return Model::isOk($input); 
+                    return Model::isOk($object->sendTagSuccess($projectId, $tag, "Die Einsendung wurde gespeichert!")); 
                 };
                 
-                $negative = function(){
-                    return Model::isError($this->sendTagError($projectId, $tag, "Die Einsendung konnte nicht gespeichert werden!")); 
+                $negative = function($object, $projectId, $tag){
+                    return Model::isError($object->sendTagError($projectId, $tag, "Die Einsendung konnte nicht gespeichert werden!")); 
                 };
                 
                 // jetzt wird die Einsendung gespeichert
-                return Model::call('postSubmission', array('courseid'=>$courseId), Submission::encodeSubmission($uploadSubmission), 201, $positive, array(), $negative, array(), null);
+                return Model::call('postSubmission', array('courseid'=>$courseId), Submission::encodeSubmission($uploadSubmission), 201, $positive, array('object'=>$this, 'projectId'=>$projectId, 'tag'=>$tag), $negative, array('object'=>$this, 'projectId'=>$projectId, 'tag'=>$tag), null);
             } else {
                 return Model::isError($this->sendTagError($projectId, $tag, "ich konnte den Dateinamen der Einsendung nicht ermitteln")); 
             }
@@ -407,8 +407,17 @@ class LGitLab extends Model
     }
     
     public function sendTagError($projectId, $tag, $message){
-        $tagName = end(explode('/',$tag));
         $message = ':exclamation: '.$message.' :exclamation:';
+        $this->sendTag($projectId, $tag, $message);
+    }
+    
+    public function sendTagSuccess($projectId, $tag, $message){
+        $message = ':white_check_mark: '.$message;
+        $this->sendTag($projectId, $tag, $message);
+    }
+    
+    public function sendTag($projectId, $tag, $message){
+        $tagName = end(explode('/',$tag));
         
         $token = null;
         // wenn wir einen secretToken gefunden haben, dann wird dieser verwendet
