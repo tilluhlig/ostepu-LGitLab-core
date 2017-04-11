@@ -111,7 +111,7 @@ class LGitLab extends Model
                                            'text'=>'Fehler')))          
           ->addSet('sheetName',
                    array('satisfy_exists',
-                         'satisfy_regex'=>'%^([0-9a-zA-Z_]+)$%',
+                         'satisfy_regex'=>'%^([0-9a-zA-Z_\h]+)$%',
                          'on_error'=>array('type'=>'error',
                                            'text'=>'Fehler')))
           ->addSet('exerciseName',
@@ -162,8 +162,9 @@ class LGitLab extends Model
         $mySheet=null;
         foreach($exerciseSheets as $sheet){
             $currentSheetName = strtoupper($sheet->getSheetName());
-            $currentSheetName = str_replace(array(' ', "\t"), array('',''), $currentSheetName);
-            if ($currentSheetName === strtoupper($sheetName)){
+            $currentSheetName2 = str_replace(array('_', "\t"), array('',''), $currentSheetName);
+            $currentSheetName = str_replace(array('_', ' ', "\t"), array('','',''), $currentSheetName);
+            if ($currentSheetName === strtoupper($sheetName) || $currentSheetName2 === strtoupper($sheetName)){
                 $sheetId = $sheet->getId();
                 $courseId = $sheet->getCourseId();
                 $mySheet = $sheet;
