@@ -1,11 +1,17 @@
 [
     {
         "name": "submit",
-        "callback": "submit",
-        "singleOutput": "TRUE",
         "outputType": "binary",
         "inputType": "",
         "method": "POST",
+        "placeholder":[{"name":"courseid","regex":"%^([0-9_]+)$%"}],
+        "path": "/submit/course/:courseid"
+    },
+    {
+        "name": "getSubmitHelp",
+        "outputType": "binary",
+        "inputType": "",
+        "method": "GET",
         "placeholder":[{"name":"courseid","regex":"%^([0-9_]+)$%"}],
         "path": "/submit/course/:courseid"
     },
@@ -30,5 +36,12 @@
         "inputType": "",
         "method": "GET",
         "path": "/link/exists/platform"
+    },
+    {
+        "name": "getHelpButton",
+        "outputType": "binary",
+        "inputType": "",
+        "method": "GET",
+        "path": "/view/button/help"
     }
 ]

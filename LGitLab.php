@@ -1,5 +1,10 @@
 <?php
 include_once ( dirname(__FILE__) . '/../../Assistants/Model.php' );
+include_once ( dirname(__FILE__) . '/../../Assistants/vendor/Markdown/Michelf/MarkdownInterface.php' );
+include_once ( dirname(__FILE__) . '/../../Assistants/vendor/Markdown/Michelf/Markdown.php' );
+include_once ( dirname(__FILE__) . '/../../Assistants/vendor/Markdown/Michelf/MarkdownExtra.php' );
+include_once ( dirname(__FILE__) . '/../../UI/include/HTMLWrapper.php' );
+include_once ( dirname(__FILE__) . '/../../UI/include/Template.php' );
 
 /**
  * 
@@ -30,7 +35,53 @@ class LGitLab extends Model
         parent::__construct('', dirname(__FILE__), $this, false, false, array('addRequestToParams'=>true));
         $this->run();
     }
+    
+    public function getHelpButton( $callName, $input, $params = array() )
+    {
+        $data = json_decode($input, true);
+        $res = array('content'=>'');
+        if (isset($data['cid'])){
+            $URL = $data['externalURI']."/vendor/LGitLab/submit/course/".$data['cid'];
+            $content = "<li><a href='{$URL}' class='plain image-button exercise-sheet-images' target='popup' onclick=\"window.open('{$URL}', 'popup', 'width=700,height=600,scrollbars=yes,location=no,directories=no,menubar=no,toolbar=no,status=no,resizable=yes')\" title='info' target='_blank'>GitLab-Hilfe</a></li>";
+        
+            $res = array('content'=>$content);
+        }
+        return Model::isOk(json_encode($res)); 
+    }
+    
+    public function umlaute($text){ 
+        $search  = array('ä', 'Ä', 'ö', 'Ö', 'ü', 'Ü', 'ß');
+        $replace = array('&auml;', '&Auml;', '&ouml;', '&Ouml;', '&uuml;', '&Uuml;', '&szlig;');
+        return str_replace($search, $replace, $text);;
+    }
+    
+    public function getSubmitHelp( $callName, $input, $params = array() )
+    {
+        $file = dirname(__FILE__).'/descriptions/desc.html';
+        if (!file_exists($file) || !isset($this->config['MAIN']['externalURI'])){
+            return Model::isError("Die Hilfe für GitLab konnte nicht erstellt werden!");
+        }
 
+        $h = Template::WithTemplateFile('descriptions/desc.html');
+        $h->bind($params);
+        $h->bind(array('externalURI'=>$this->config['MAIN']['externalURI']));
+        ob_start();
+        $h->show();
+        $content = ob_get_clean();
+        
+        $parser = new \Michelf\MarkdownExtra;
+        $content = $this->umlaute($content);
+        $my_html = $parser->transform($content);
+        $contact = isset($this->config['HELP']['contactUrl']) ? $this->config['HELP']['contactUrl'] : null;
+        if (isset($contact) && trim($contact) !== ''){
+            $contact = '<a href="'.$contact.'">Kontakt</a>';
+        }
+        
+        $content = '<html><head></head><body><link rel="stylesheet" href="'.$this->config['MAIN']['externalURI'].'/UI/css/github-markdown.css" type="text/css"><span class="markdown-body">'.$my_html.$contact.'</span></body></html>';
+   
+        return Model::isOk($content);
+    }
+    
     public function submit( $callName, $input, $params = array() )
     {
         $data = json_decode($input, true);
@@ -92,7 +143,7 @@ class LGitLab extends Model
         $checkoutSha = $data['checkout_sha'];
         
         // der TAG muss mit SUBMIT beginnen
-        if (strtoupper($tagType) != 'SUBMIT'){
+        if (strtoupper($tagType) !== 'SUBMIT'){
             return Model::isOk("dieses Tag soll nichts einsenden");
         }
         
@@ -247,7 +298,11 @@ class LGitLab extends Model
         if (isset($this->secretToken)){ // wenn ein secretToken gefunden wurde, dann wird dieser genutzt
             $token = urlencode($this->secretToken);
         } else {
-            $token = $this->config['GITLAB']['private_token'];
+            if (isset($this->config['GITLAB']['private_token'])){
+                $token = $this->config['GITLAB']['private_token'];
+            } else {
+                $token = 'noToken';
+            }
         }  
         
         $url = $this->config['GITLAB']['gitLabUrl'].'/api/v3/projects/'.$projectId.'/repository/archive?'.'private_token='.$token.'&sha='.$checkoutSha;
@@ -387,11 +442,26 @@ class LGitLab extends Model
         $text = "[DIR]\n".
                 "temp = \"".str_replace(array("\\","\""),array("\\\\","\\\""),str_replace("\\","/",$input->getTempDirectory()))."\"\n";
                 
-        $settings = $input->getSettings();
-        $text .= "[GITLAB]\n".
-                "gitLabUrl = \"".str_replace(array("\\","\""),array("\\\\","\\\""),str_replace("\\","/",$settings->LGitLab_gitLabUrl))."\"\n".
-                "private_token = \"".str_replace(array("\\","\""),array("\\\\","\\\""),str_replace("\\","/",$settings->LGitLab_private_token))."\"\n";
+        $text .= "[MAIN]\n".
+                "externalURI = \"".str_replace(array("\\","\""),array("\\\\","\\\""),str_replace("\\","/",$input->getExternalUrl()))."\"\n";
                 
+        $settings = $input->getSettings();
+        
+        if (isset($settings->contactUrl)){
+            $text .= "[HELP]\n";
+            $text .= "contactUrl = \"".str_replace(array("\\","\""),array("\\\\","\\\""),str_replace("\\","/",$settings->contactUrl))."\"\n";
+        }
+        
+        $text .= "[GITLAB]\n";
+        
+        if (isset($settings->LGitLab_gitLabUrl)){
+            $text .= "gitLabUrl = \"".str_replace(array("\\","\""),array("\\\\","\\\""),str_replace("\\","/",$settings->LGitLab_gitLabUrl))."\"\n";
+        }
+        
+        if (isset($settings->LGitLab_private_token)){
+            $text .= "private_token = \"".str_replace(array("\\","\""),array("\\\\","\\\""),str_replace("\\","/",$settings->LGitLab_private_token))."\"\n";
+        }
+        
         if (!@file_put_contents($file,$text)){
             Logger::Log(
                         'POST AddPlatform failed, config.ini no access',
@@ -424,8 +494,12 @@ class LGitLab extends Model
         // wenn wir einen secretToken gefunden haben, dann wird dieser verwendet
         if (isset($this->secretToken)){
             $token = urlencode($this->secretToken);
-        } else {
-            $token = $this->config['GITLAB']['private_token'];
+        } else {            
+            if (isset($this->config['GITLAB']['private_token'])){
+                $token = $this->config['GITLAB']['private_token'];
+            } else {
+                $token = 'noToken';
+            }
         }    
         $url = $this->config['GITLAB']['gitLabUrl'].'/api/v3/projects/'.urlencode($projectId).'/repository/tags/'.urlencode($tagName).'/release?'.'description='.urlencode($message).'&private_token='.$token;
         

@@ -46,6 +46,40 @@
     ],
     "connector":[
         {"name": "request","target": "CLocalObjectRequest"},
-        {"name": "postPlatform","target": "CInstall"}
+        {"name": "postPlatform","target": "CInstall"},
+        {
+            "name": "getContent",
+            "target": "UINavigation",
+            "links": [
+                {"path": "/view/button/help", "priority": "150"}
+            ]
+        },
+        {
+            "name": "request",
+            "target": "CHelp",
+            "links": [
+                {"path": "/help/:language/extension/LGitLab/A.png"},
+                {"path": "/help/:language/extension/LGitLab/B.png"},
+                {"path": "/help/:language/extension/LGitLab/C.png"},
+                {"path": "/help/:language/extension/LGitLab/D.png"},
+                {"path": "/help/:language/extension/LGitLab/E.png"},
+                {"path": "/help/:language/extension/LGitLab/F.png"},
+                {"path": "/help/:language/extension/LGitLab/G.png"},
+                {"path": "/help/:language/extension/LGitLab/H.png"},
+                {"path": "/help/:language/extension/LGitLab/I.png"},
+                {"path": "/help/:language/extension/LGitLab/J.png"},
+                {"path": "/help/:language/extension/LGitLab/K.png"},
+                {"path": "/help/:language/extension/LGitLab/L.png"},
+                {"path": "/help/:language/extension/LGitLab/M.png"},
+                {"path": "/help/:language/extension/LGitLab/N.png"},
+                {"path": "/help/:language/extension/LGitLab/O.png"},
+                {"path": "/help/:language/extension/LGitLab/P.png"},
+                {"path": "/help/:language/extension/LGitLab/Q.png"},
+                {"path": "/help/:language/extension/LGitLab/R.png"},
+                {"path": "/help/:language/extension/LGitLab/S.png"},
+                {"path": "/help/:language/extension/LGitLab/T.png"},
+                {"path": "/help/:language/extension/LGitLab/U.png"}
+            ]
+        }
     ]
 }
