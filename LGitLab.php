@@ -132,11 +132,11 @@ class LGitLab extends Model
         end($tagRaw);
         $tagRaw = current($tagRaw); // SUBMIT_SHEETID_EXERCISEID
         $tagRaw = explode("_",$tagRaw); // [SUBMIT, SHEETID, EXERCISEID]
-        
+
         if (count($tagRaw)!=3){
             return Model::isError("der Tagname ist ungültig");            
         }
-        
+
         $tagType = $tagRaw[0];
         $sheetName = $tagRaw[1]; // die Übungsserie-ID (muss geprüft werden)
         $exerciseName = strtoupper($tagRaw[2]); // die Aufgaben-ID (muss geprüft werden)
@@ -154,32 +154,32 @@ class LGitLab extends Model
                    array('satisfy_exists',
                          'valid_identifier',
                          'on_error'=>array('type'=>'error',
-                                           'text'=>'Fehler')))
+                                           'text'=>'die Kursnummer in der URL ist ungültig')))
           ->addSet('userName',
                    array('satisfy_exists',
                          'valid_userName',
                          'on_error'=>array('type'=>'error',
-                                           'text'=>'Fehler')))          
+                                           'text'=>'der Nutzername ist ungültig')))          
           ->addSet('sheetName',
                    array('satisfy_exists',
-                         'satisfy_regex'=>'%^([0-9a-zA-Z_\h]+)$%',
+                         'satisfy_regex'=>'%^([0-9a-zA-Z-_\h]+)$%',
                          'on_error'=>array('type'=>'error',
-                                           'text'=>'Fehler')))
+                                           'text'=>'der Name der Übungsserie ist ungültig (nur 0-9, a-z, A-Z, -_ und Leerzeichen)')))
           ->addSet('exerciseName',
                    array('satisfy_exists',
                          'valid_alpha_space_numeric',
                          'on_error'=>array('type'=>'error',
-                                           'text'=>'Fehler')))
+                                           'text'=>'der Name der Aufgabe ist ungültig (im Tag)')))
           ->addSet('checkoutSha',
                    array('satisfy_exists',
                          'valid_sha1',
                          'on_error'=>array('type'=>'error',
-                                           'text'=>'Fehler')))
+                                           'text'=>'der Hash des Commits ist ungültig')))
           ->addSet('projectId',
                    array('satisfy_exists',
                          'valid_integer',
                          'on_error'=>array('type'=>'error',
-                                           'text'=>'Fehler'))); 
+                                           'text'=>'die ID des Repository ist ungültig'))); 
 
         $result = $val->validate(); // liefert die Ergebnismenge
 
@@ -194,9 +194,17 @@ class LGitLab extends Model
         } else {
               // wenn die Eingabe nicht validiert werden konnte, können hier die
               // Fehlermeldungen behandelt werden
-            return Model::isError($this->sendTagError($projectId, $tag, "fehlerhafte Eingabe")); 
+              $errorText = array();
+              $errors = $val->getNotifications();
+              foreach($errors as $error){
+                  if (!isset($error['text'])){
+                      continue;
+                  }
+                  $errorText[]=$error['text'];
+              }
+            return Model::isError($this->sendTagError($projectId, $tag, "fehlerhafte Eingabe => ".implode(',',$errorText))); 
         }
-        
+
         // wenn die Form stimmt, dann können wir die Daten gegenprüfen
         $exerciseSheets = Model::call('getCourseExerciseSheets', array('courseid'=>$courseIdRaw), '', 200, 'Model::isOk', array(), 'Model::isProblem', array(), null);
         
@@ -375,7 +383,7 @@ class LGitLab extends Model
                 $negative = function($object, $projectId, $tag){
                     return Model::isError($object->sendTagError($projectId, $tag, "Die Einsendung konnte nicht gespeichert werden!")); 
                 };
-                
+
                 // jetzt wird die Einsendung gespeichert
                 return Model::call('postSubmission', array('courseid'=>$courseId), Submission::encodeSubmission($uploadSubmission), 201, $positive, array('object'=>$this, 'projectId'=>$projectId, 'tag'=>$tag), $negative, array('object'=>$this, 'projectId'=>$projectId, 'tag'=>$tag), null);
             } else {
@@ -479,12 +487,12 @@ class LGitLab extends Model
     
     public function sendTagError($projectId, $tag, $message){
         $message = ':exclamation: '.$message.' :exclamation:';
-        $this->sendTag($projectId, $tag, $message);
+        return $this->sendTag($projectId, $tag, $message);
     }
     
     public function sendTagSuccess($projectId, $tag, $message){
         $message = ':white_check_mark: '.$message;
-        $this->sendTag($projectId, $tag, $message);
+        return $this->sendTag($projectId, $tag, $message);
     }
     
     public function sendTag($projectId, $tag, $message){
@@ -506,6 +514,7 @@ class LGitLab extends Model
         if (isset($token)){
             Request::post($url, array(),  '', false);
         }
+        return $message;
     }
 
 }
