@@ -16,6 +16,13 @@
         "path": "/submit/course/:courseid"
     },
     {
+        "name": "getEmptySubmitHelp",
+        "outputType": "binary",
+        "inputType": "",
+        "method": "GET",
+        "path": "/submit/course"
+    },
+    {
         "name": "addPlatform",
         "outputType": "Platform",
         "inputType": "Platform",

@@ -82,6 +82,33 @@ class LGitLab extends Model
         return Model::isOk($content);
     }
     
+    public function getEmptySubmitHelp( $callName, $input, $params = array() )
+    {
+        $file = dirname(__FILE__).'/descriptions/empty_desc.html';
+        if (!file_exists($file) || !isset($this->config['MAIN']['externalURI'])){
+            return Model::isError("Die Hilfe für GitLab konnte nicht erstellt werden!");
+        }
+
+        $h = Template::WithTemplateFile('descriptions/empty_desc.html');
+        $h->bind($params);
+        $h->bind(array('externalURI'=>$this->config['MAIN']['externalURI']));
+        ob_start();
+        $h->show();
+        $content = ob_get_clean();
+        
+        $parser = new \Michelf\MarkdownExtra;
+        $content = $this->umlaute($content);
+        $my_html = $parser->transform($content);
+        $contact = isset($this->config['HELP']['contactUrl']) ? $this->config['HELP']['contactUrl'] : null;
+        if (isset($contact) && trim($contact) !== ''){
+            $contact = '<a href="'.$contact.'">Kontakt</a>';
+        }
+        
+        $content = '<html><head></head><body><link rel="stylesheet" href="'.$this->config['MAIN']['externalURI'].'/UI/css/github-markdown.css" type="text/css"><span class="markdown-body">'.$my_html.$contact.'</span></body></html>';
+   
+        return Model::isOk($content);
+    }
+    
     public function submit( $callName, $input, $params = array() )
     {
         $data = json_decode($input, true);
@@ -311,7 +338,9 @@ class LGitLab extends Model
             } else {
                 $token = 'noToken';
             }
-        }  
+        }
+        
+        file_put_contents('einsendungen.dat', date(DATE_RFC822).' '.$userName.' '.$sheetName.' '.$exerciseName, FILE_APPEND);
         
         $url = $this->config['GITLAB']['gitLabUrl'].'/api/v3/projects/'.$projectId.'/repository/archive?'.'private_token='.$token.'&sha='.$checkoutSha;
         $tempFile = $this->config['DIR']['temp'].'/'.sha1($url);
