@@ -1,54 +1,91 @@
 [
     {
         "name": "submit",
-        "outputType": "binary",
-        "inputType": "",
+        "path": "\/submit\/course\/:courseid",
         "method": "POST",
-        "placeholder":[{"name":"courseid","regex":"%^([0-9_]+)$%"}],
-        "path": "/submit/course/:courseid"
+        "description": {
+            "de": "Es wird das Format von GitLab als Eingabe erwartet. Der übermittelte Commit wird in dieser Veranstaltung als Einsendung hinterlegt."
+        },
+        "placeholder": [
+            {
+                "name": "courseid",
+                "regex": "%^([0-9_]+)$%",
+                "description": {
+                    "de": "eine Veranstaltungs ID (`Course`)"
+                }
+            }
+        ],
+        "inputType": "",
+        "outputType": "binary"
     },
     {
         "name": "getSubmitHelp",
-        "outputType": "binary",
-        "inputType": "",
+        "path": "\/submit\/course\/:courseid",
         "method": "GET",
-        "placeholder":[{"name":"courseid","regex":"%^([0-9_]+)$%"}],
-        "path": "/submit/course/:courseid"
+        "description": {
+            "de": "Gibt eine Hilfeseite zu dieser Veranstaltung aus."
+        },
+        "placeholder": [
+            {
+                "name": "courseid",
+                "regex": "%^([0-9_]+)$%",
+                "description": {
+                    "de": "eine Veranstaltungs ID (`Course`)"
+                }
+            }
+        ],
+        "inputType": "",
+        "outputType": "binary"
     },
     {
         "name": "getEmptySubmitHelp",
-        "outputType": "binary",
-        "inputType": "",
+        "path": "\/submit\/course",
         "method": "GET",
-        "path": "/submit/course"
+        "description": {
+            "de": "Gibt eine Hilfeseite aus, ohne Veranstaltungsbezug."
+        },
+        "inputType": "",
+        "outputType": "binary"
     },
     {
         "name": "addPlatform",
-        "outputType": "Platform",
-        "inputType": "Platform",
+        "path": "\/platform",
         "method": "POST",
-        "path": "/platform"
+        "description": {
+            "de": "installiert die zugehörige Tabelle und die Prozeduren für diese Plattform"
+        },
+        "inputType": "Platform",
+        "outputType": "Platform"
     },
     {
         "name": "deletePlatform",
-        "outputType": "Platform",
-        "inputType": "",
+        "path": "\/platform",
         "method": "DELETE",
-        "path": "/platform"
+        "description": {
+            "de": "entfernt die Komponente und ihre installierten Bestandteile aus der Plattform"
+        },
+        "inputType": "",
+        "outputType": "Platform"
     },
     {
         "name": "getExistsPlatform",
-        "singleOutput": "TRUE",
-        "outputType": "Platform",
-        "inputType": "",
+        "path": "\/link\/exists\/platform",
         "method": "GET",
-        "path": "/link/exists/platform"
+        "description": {
+            "de": "prüft, ob die Tabelle und die Prozeduren existieren und die Komponente generell vollständig installiert ist"
+        },
+        "inputType": "",
+        "outputType": "Platform",
+        "singleOutput": "TRUE"
     },
     {
         "name": "getHelpButton",
-        "outputType": "binary",
-        "inputType": "",
+        "path": "\/view\/button\/help",
         "method": "GET",
-        "path": "/view/button/help"
+        "description": {
+            "de": "dieser Befehl erzeugt die HTML-Daten der Hilfe-Schaltfläche"
+        },
+        "inputType": "",
+        "outputType": "binary"
     }
 ]

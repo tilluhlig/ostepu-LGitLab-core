@@ -1,84 +1,180 @@
 {
     "name": "LGitLab",
+    "description": {
+        "de": "Die Komponente LGitLab nimmt TAG-Ereignisse einer angebundenen GitLab-Umgebung entgegen und erzeugt aus dem zugehörigen Commit eine Einsendung."
+    },
     "version": "1.0",
     "classFile": "LGitLab.php",
     "className": "LGitLab",
     "files": [
-        {"path": ".htaccess"},
-        {"path": "LGitLab.php"},
-        {"path": "index.php"},
-        {"path": "Commands.json"},
-        {"path": "info/"}
+        {
+            "path": ".htaccess"
+        },
+        {
+            "path": "LGitLab.php"
+        },
+        {
+            "path": "index.php"
+        },
+        {
+            "path": "Commands.json"
+        },
+        {
+            "path": "info\/"
+        }
     ],
     "links": [
         {
             "name": "getUser",
             "target": "DBUser",
-            "links": [{
-                "method": "GET",
-                "path": "/user/user/:userid"
-            }]
+            "description": {
+                "de": "zum Abrufen der Daten eines einzelnen Nutzers"
+            },
+            "links": [
+                {
+                    "method": "GET",
+                    "path": "\/user\/user\/:userid"
+                }
+            ]
         },
         {
             "name": "getGroup",
             "target": "DBGroup",
-            "links": [{
-                "method": "GET",
-                "path": "/group/user/:userid/exercisesheet/:sheetid"
-            }]
+            "description": {
+                "de": "um die Gruppen einer Übungsserie und eines Nutzers zu ermitteln"
+            },
+            "links": [
+                {
+                    "method": "GET",
+                    "path": "\/group\/user\/:userid\/exercisesheet\/:sheetid"
+                }
+            ]
         },
         {
             "name": "postSubmission",
             "target": "LProcessor",
-            "links": [{
-                "method": "POST",
-                "path": "/submission"
-            }]
+            "description": {
+                "de": "zum Erstellen einer Einsendung"
+            },
+            "links": [
+                {
+                    "method": "POST",
+                    "path": "\/submission"
+                }
+            ]
         },
         {
             "name": "getCourseExerciseSheets",
             "target": "LExerciseSheet",
-            "links": [{
-                "method": "GET",
-                "path": "/exercisesheet/course/:courseid/exercise"
-            }]
+            "description": {
+                "de": "um alle Übungsserien einer Veranstaltung abzurufen"
+            },
+            "links": [
+                {
+                    "method": "GET",
+                    "path": "\/exercisesheet\/course\/:courseid\/exercise"
+                }
+            ]
         }
     ],
-    "connector":[
-        {"name": "request","target": "CLocalObjectRequest"},
-        {"name": "postPlatform","target": "CInstall"},
+    "connector": [
+        {
+            "name": "request",
+            "target": "CLocalObjectRequest",
+            "description": {
+                "de": "damit LGitLab als lokales Objekt aufgerufen werden kann"
+            }
+        },
+        {
+            "name": "postPlatform",
+            "target": "CInstall",
+            "description": {
+                "de": "der Installationsassistent soll uns bei der Plattforminstallation aufrufen"
+            }
+        },
         {
             "name": "getContent",
             "target": "UINavigation",
+            "description": {
+                "de": "wir wollen eine eigene Schaltfläche für unsere Hilfeseite in der Navigationsleiste zeichnen"
+            },
             "links": [
-                {"path": "/view/button/help", "priority": "150"}
+                {
+                    "path": "\/view\/button\/help",
+                    "priority": "150"
+                }
             ]
         },
         {
             "name": "request",
             "target": "CHelp",
+            "description": {
+                "de": "hier werden Hilfedateien beim zentralen Hilfesystem angemeldet, sodass sie über ihre globale Adresse abgerufen werden können"
+            },
             "links": [
-                {"path": "/help/:language/extension/LGitLab/A.png"},
-                {"path": "/help/:language/extension/LGitLab/B.png"},
-                {"path": "/help/:language/extension/LGitLab/C.png"},
-                {"path": "/help/:language/extension/LGitLab/D.png"},
-                {"path": "/help/:language/extension/LGitLab/E.png"},
-                {"path": "/help/:language/extension/LGitLab/F.png"},
-                {"path": "/help/:language/extension/LGitLab/G.png"},
-                {"path": "/help/:language/extension/LGitLab/H.png"},
-                {"path": "/help/:language/extension/LGitLab/I.png"},
-                {"path": "/help/:language/extension/LGitLab/J.png"},
-                {"path": "/help/:language/extension/LGitLab/K.png"},
-                {"path": "/help/:language/extension/LGitLab/L.png"},
-                {"path": "/help/:language/extension/LGitLab/M.png"},
-                {"path": "/help/:language/extension/LGitLab/N.png"},
-                {"path": "/help/:language/extension/LGitLab/O.png"},
-                {"path": "/help/:language/extension/LGitLab/P.png"},
-                {"path": "/help/:language/extension/LGitLab/Q.png"},
-                {"path": "/help/:language/extension/LGitLab/R.png"},
-                {"path": "/help/:language/extension/LGitLab/S.png"},
-                {"path": "/help/:language/extension/LGitLab/T.png"},
-                {"path": "/help/:language/extension/LGitLab/U.png"}
+                {
+                    "path": "\/help\/:language\/extension\/LGitLab\/A.png"
+                },
+                {
+                    "path": "\/help\/:language\/extension\/LGitLab\/B.png"
+                },
+                {
+                    "path": "\/help\/:language\/extension\/LGitLab\/C.png"
+                },
+                {
+                    "path": "\/help\/:language\/extension\/LGitLab\/D.png"
+                },
+                {
+                    "path": "\/help\/:language\/extension\/LGitLab\/E.png"
+                },
+                {
+                    "path": "\/help\/:language\/extension\/LGitLab\/F.png"
+                },
+                {
+                    "path": "\/help\/:language\/extension\/LGitLab\/G.png"
+                },
+                {
+                    "path": "\/help\/:language\/extension\/LGitLab\/H.png"
+                },
+                {
+                    "path": "\/help\/:language\/extension\/LGitLab\/I.png"
+                },
+                {
+                    "path": "\/help\/:language\/extension\/LGitLab\/J.png"
+                },
+                {
+                    "path": "\/help\/:language\/extension\/LGitLab\/K.png"
+                },
+                {
+                    "path": "\/help\/:language\/extension\/LGitLab\/L.png"
+                },
+                {
+                    "path": "\/help\/:language\/extension\/LGitLab\/M.png"
+                },
+                {
+                    "path": "\/help\/:language\/extension\/LGitLab\/N.png"
+                },
+                {
+                    "path": "\/help\/:language\/extension\/LGitLab\/O.png"
+                },
+                {
+                    "path": "\/help\/:language\/extension\/LGitLab\/P.png"
+                },
+                {
+                    "path": "\/help\/:language\/extension\/LGitLab\/Q.png"
+                },
+                {
+                    "path": "\/help\/:language\/extension\/LGitLab\/R.png"
+                },
+                {
+                    "path": "\/help\/:language\/extension\/LGitLab\/S.png"
+                },
+                {
+                    "path": "\/help\/:language\/extension\/LGitLab\/T.png"
+                },
+                {
+                    "path": "\/help\/:language\/extension\/LGitLab\/U.png"
+                }
             ]
         }
     ]
