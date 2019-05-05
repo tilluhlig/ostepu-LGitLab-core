@@ -189,9 +189,9 @@ class LGitLab extends Model
                                            'text'=>'der Nutzername ist ungültig')))          
           ->addSet('sheetName',
                    array('satisfy_exists',
-                         'satisfy_regex'=>'%^([0-9a-zA-Z-_\h]+)$%',
                          'on_error'=>array('type'=>'error',
                                            'text'=>'der Name der Übungsserie ist ungültig (nur 0-9, a-z, A-Z, -_ und Leerzeichen)')))
+                                           'text'=>'die Übungsserie konnte nicht erkannt werden')))
           ->addSet('exerciseName',
                    array('satisfy_exists',
                          'valid_alpha_space_numeric',
@@ -340,9 +340,9 @@ class LGitLab extends Model
             }
         }
         
-        file_put_contents('einsendungen.dat', date(DATE_RFC822).' '.$userName.' '.$sheetName.' '.$exerciseName, FILE_APPEND);
+        file_put_contents('einsendungen.dat', 'tag: '.$tag.' course:'.$courseIdRaw.' date:'.date(DATE_RFC822).' user:'.$userName.' sheet:'.$sheetName.' exercise:'.$exerciseName."\n", FILE_APPEND);
         
-        $url = $this->config['GITLAB']['gitLabUrl'].'/api/v3/projects/'.$projectId.'/repository/archive?'.'private_token='.$token.'&sha='.$checkoutSha;
+        $url = $this->config['GITLAB']['gitLabUrl'].'/api/v4/projects/'.$projectId.'/repository/archive?'.'private_token='.$token.'&sha='.$checkoutSha;
         $tempFile = $this->config['DIR']['temp'].'/'.sha1($url);
 
         $res = Request::download($tempFile, $url, true);
@@ -379,6 +379,7 @@ class LGitLab extends Model
 
                         ///set_error("Der Übungszeitraum ist am ".date('d.m.Y  -  H:i', $upload_data['exerciseSheet']['endDate'])." abgelaufen!");
                         if ($allowed  === null || $allowed==1){
+                            // verhindert verspaetete Einsendungen
                             return Model::isError($this->sendTagError($projectId, $tag, "der Übungszeitraum ist abgelaufen, am ".date('d.m.Y  -  H:i', $mySheet->getEndDate())));
                         } else {
                             return Model::isError($this->sendTagError($projectId, $tag, "der Übungszeitraum ist abgelaufen, am ".date('d.m.Y  -  H:i', $mySheet->getEndDate())));
@@ -537,8 +538,8 @@ class LGitLab extends Model
             } else {
                 $token = 'noToken';
             }
-        }    
-        $url = $this->config['GITLAB']['gitLabUrl'].'/api/v3/projects/'.urlencode($projectId).'/repository/tags/'.urlencode($tagName).'/release?'.'description='.urlencode($message).'&private_token='.$token;
+        }
+        $url = $this->config['GITLAB']['gitLabUrl'].'/api/v4/projects/'.urlencode($projectId).'/repository/tags/'.urlencode($tagName).'/release?'.'description='.urlencode($message).'&private_token='.$token;
         
         if (isset($token)){
             Request::post($url, array(),  '', false);
