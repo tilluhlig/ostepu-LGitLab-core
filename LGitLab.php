@@ -159,11 +159,11 @@ class LGitLab extends Model
         end($tagRaw);
         $tagRaw = current($tagRaw); // SUBMIT_SHEETID_EXERCISEID
         $tagRaw = explode("_",$tagRaw); // [SUBMIT, SHEETID, EXERCISEID]
-
+        
         if (count($tagRaw)!=3){
             return Model::isError("der Tagname ist ungültig");            
         }
-
+        
         $tagType = $tagRaw[0];
         $sheetName = $tagRaw[1]; // die Übungsserie-ID (muss geprüft werden)
         $exerciseName = strtoupper($tagRaw[2]); // die Aufgaben-ID (muss geprüft werden)
