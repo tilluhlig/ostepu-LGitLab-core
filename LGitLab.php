@@ -138,7 +138,7 @@ class LGitLab extends Model
             return Model::isError("die Veranstaltungsnummer fehlt!");            
         }
         
-        if (!isset($data['project']['namespace'])){
+        if (!isset($data['user_username'])){
             return Model::isError("der Nutzername fehlt!");            
         }
         
@@ -147,7 +147,7 @@ class LGitLab extends Model
         }
         
         $courseIdRaw = $params['courseid']; // die ID der Veranstaltung (muss geprüft werden)
-        $userName = $data['project']['namespace']; // das ist der Nutzername (muss geprüft werden)
+        $userName = $data['user_username']; // das ist der Nutzername (muss geprüft werden)
         $timestampRaw = $data['commits'][0]['timestamp']; // das ist der Einsendezeitpunkt. Format: 2017-02-22T14:10:25+01:00
         $timestamp = strtotime($timestampRaw);
         
